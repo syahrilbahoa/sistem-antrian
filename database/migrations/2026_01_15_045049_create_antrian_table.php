@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('antrian', function (Blueprint $table) {
             $table->id('id_antrian');
-            $table->integer('nomor_antrian');
+            $table->string('nomor_antrian');
             $table->string('nama_dokter');
             $table->date('tanggal');
             $table->enum('status', ['menunggu', 'dipanggil', 'selesai']);
