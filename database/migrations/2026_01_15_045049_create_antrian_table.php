@@ -9,16 +9,16 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-     public function up(): void
+    public function up(): void
     {
         Schema::create('antrian', function (Blueprint $table) {
             $table->id('id_antrian');
             $table->integer('nomor_antrian');
+            $table->string('nama_dokter');
             $table->date('tanggal');
             $table->enum('status', ['menunggu', 'dipanggil', 'selesai']);
             $table->timestamp('waktu_ambil')->nullable();
             $table->timestamp('waktu_panggil')->nullable();
-            $table->integer('jumlah_panggil')->default(0);
 
             $table->unsignedBigInteger('id_loket')->nullable();
             $table->unsignedBigInteger('id_user')->nullable();
@@ -26,13 +26,13 @@ return new class extends Migration
 
             // Foreign Key
             $table->foreign('id_loket')
-                  ->references('id_loket')
-                  ->on('loket')
-                  ->onDelete('set null');
+                ->references('id_loket')
+                ->on('loket')
+                ->onDelete('set null');
             $table->foreign('id_user')
-                  ->references('id')
-                  ->on('users')
-                  ->onDelete('set null');
+                ->references('id')
+                ->on('users')
+                ->onDelete('set null');
         });
     }
 
@@ -43,6 +43,4 @@ return new class extends Migration
     {
         Schema::dropIfExists('antrian');
     }
-
-
 };

@@ -38,7 +38,7 @@ class AnjunganController extends Controller
                 'status'        => 'menunggu',
                 'waktu_ambil'   => now(),
                 'waktu_panggil' => null,
-                'id_loket'      => null, // Default loket 1, bisa disesuaikan dengan kebutuhan
+                'id_loket'      => null,
                 'id_user'       => null
             ]);
 

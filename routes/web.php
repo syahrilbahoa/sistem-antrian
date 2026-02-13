@@ -1,16 +1,13 @@
 <?php
 
-use App\Events\PanggilAntrian;
-use App\Http\Controllers\AdminController;
-use App\Http\Controllers\AnjunganController;
-use App\Http\Controllers\DispleyController;
-use App\Http\Controllers\LoginController;
-use App\Http\Controllers\PetugasController;
 use Illuminate\Support\Facades\Route;
+use App\Events\PanggilAntrian;
+use App\Http\Controllers\{AdminController, AnjunganController, DispleyController, LoginController, PetugasController};
 
 
-Route::get('/', [LoginController::class, 'index']);
-Route::post('/login', [LoginController::class, 'index']);
+Route::get('/', [LoginController::class, 'index'])->name('home');
+// Route::get('/login', [LoginController::class, 'index'])->name('login');
+Route::post('/login', [LoginController::class, 'login'])->name('login.process');
 
 Route::middleware('auth')->group(function () {
     Route::get('/petugas', [PetugasController::class, 'index']);

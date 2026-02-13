@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
 
 
 class LoginController extends Controller
@@ -12,6 +13,7 @@ class LoginController extends Controller
     {
         return view('login.login');
     }
+    
     public function login(Request $request)
     {
         $credentials = $request->validate([
@@ -19,18 +21,18 @@ class LoginController extends Controller
             'password' => 'required'
         ]);
 
-        if (Auth::attempt($credentials)) {
+        if (Auth::attempt($credentials, $request->has('remember'))) {
             $request->session()->regenerate();
 
             if (auth()->user()->role === 'admin') {
-                return redirect('admin');
+                return redirect()->intended('admin');
             }
-            return redirect('petugas');
+            return redirect()->intended('petugas');
         }
 
         return back()->withErrors([
             'email' => 'Email atau password salah',
-        ]);
+        ])->withInput($request->only('email'));
     }
 
     public function logout(Request $request)
@@ -39,6 +41,6 @@ class LoginController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/login');
+        return redirect('/')->with('success', 'Anda telah berhasil logout');
     }
 }
