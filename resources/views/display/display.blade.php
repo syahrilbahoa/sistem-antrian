@@ -9,93 +9,93 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     @vite(['resources/js/app.js'])
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-    body {
-        font-family: 'Inter', sans-serif;
-        background-color: #0f172a;
-    }
-
-    /* Animasi untuk nomor antrian yang dipanggil */
-    @keyframes pulse {
-        0% {
-            transform: scale(1);
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
         }
 
-        50% {
-            transform: scale(1.05);
+        /* Animasi untuk nomor antrian yang dipanggil */
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+
+            100% {
+                transform: scale(1);
+            }
         }
 
-        100% {
-            transform: scale(1);
-        }
-    }
-
-    .pulse-animation {
-        animation: pulse 2s infinite;
-    }
-
-    /* Animasi untuk teks berjalan */
-    @keyframes marquee {
-        0% {
-            transform: translateX(100%);
+        .pulse-animation {
+            animation: pulse 2s infinite;
         }
 
-        100% {
-            transform: translateX(-100%);
+        /* Animasi untuk teks berjalan */
+        @keyframes marquee {
+            0% {
+                transform: translateX(100%);
+            }
+
+            100% {
+                transform: translateX(-100%);
+            }
         }
-    }
 
-    .marquee-container {
-        overflow: hidden;
-        white-space: nowrap;
-        box-sizing: border-box;
-    }
+        .marquee-container {
+            overflow: hidden;
+            white-space: nowrap;
+            box-sizing: border-box;
+        }
 
-    .marquee-content {
-        display: inline-block;
-        animation: marquee 25s linear infinite;
-        padding-left: 100%;
-    }
+        .marquee-content {
+            display: inline-block;
+            animation: marquee 25s linear infinite;
+            padding-left: 100%;
+        }
 
-    /* Custom scrollbar */
-    .custom-scrollbar::-webkit-scrollbar {
-        width: 8px;
-    }
+        /* Custom scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
 
-    .custom-scrollbar::-webkit-scrollbar-track {
-        background: #1e293b;
-        border-radius: 4px;
-    }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #1e293b;
+            border-radius: 4px;
+        }
 
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-        background: #475569;
-        border-radius: 4px;
-    }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
 
-    /* Glow effect untuk card loket */
-    .loket-glow {
-        box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
-    }
+        /* Glow effect untuk card loket */
+        .loket-glow {
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+        }
 
-    /* Styling untuk video container */
-    .video-container {
-        position: relative;
-        padding-bottom: 56.25%;
-        /* 16:9 aspect ratio */
-        height: 0;
-        overflow: hidden;
-        border-radius: 12px;
-    }
+        /* Styling untuk video container */
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%;
+            /* 16:9 aspect ratio */
+            height: 0;
+            overflow: hidden;
+            border-radius: 12px;
+        }
 
-    .video-container iframe {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        border: none;
-    }
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
     </style>
 </head>
 
@@ -247,7 +247,7 @@
     <!-- Tombol Aktifkan Suara -->
     <div class="container mx-auto px-4 py-6">
         <div class="flex justify-center">
-            <button id="toggleSuaraBtn" 
+            <button id="toggleSuaraBtn"
                 class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white text-xl font-bold py-4 px-8 rounded-2xl flex items-center justify-center shadow-lg transform transition-all duration-300 hover:scale-105">
                 <i class="fas fa-volume-up mr-3 text-2xl"></i>
                 <span id="suaraBtnText">AKTIFKAN SUARA</span>
@@ -256,282 +256,180 @@
     </div>
 
     <script>
-    // Fungsi untuk update waktu secara real-time
-    function updateDateTime() {
-        const now = new Date();
+        /* =====================
+   JAM & TANGGAL
+===================== */
+        function updateDateTime() {
+            const now = new Date();
+            document.getElementById('current-date').textContent =
+                now.toLocaleDateString('id-ID', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
 
-        // Format tanggal
-        const optionsDate = {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        };
-        const formattedDate = now.toLocaleDateString('id-ID', optionsDate);
-        document.getElementById('current-date').textContent = formattedDate;
-
-        // Format waktu
-        const hours = now.getHours().toString().padStart(2, '0');
-        const minutes = now.getMinutes().toString().padStart(2, '0');
-        const seconds = now.getSeconds().toString().padStart(2, '0');
-        document.getElementById('current-time').textContent = `${hours}:${minutes}:${seconds}`;
-    }
-
-    // Data antrian - akan diisi dari backend
-    const queueData = {
-        loket1: {
-            number: '',
-            type: '',
-            next: []
-        },
-        loket2: {
-            number: '',
-            type: '',
-            next: []
-        },
-        loket3: {
-            number: '',
-            type: '',
-            next: []
-        },
-        loket4: {
-            number: '',
-            type: '',
-            next: []
+            document.getElementById('current-time').textContent =
+                now.toTimeString().slice(0, 8);
         }
-    };
 
-    // Simulasi perubahan antrian (akan dihapus pada implementasi nyata)
-    function simulateQueueChange() {
-        const lokets = ['loket1', 'loket2', 'loket3', 'loket4'];
-        const prefixes = ['A', 'B', 'C', 'D'];
+        /* =====================
+           AUDIO SYSTEM (WAJIB DI ATAS)
+        ===================== */
+        let suaraAktif = false;
+        let audioContext = null;
 
-        // Setiap 15 detik, ubah nomor antrian secara acak
-        setInterval(() => {
-            const randomLoketIndex = Math.floor(Math.random() * 4);
-            const loketKey = lokets[randomLoketIndex];
-            const prefix = prefixes[randomLoketIndex];
+        const play = (src) => new Promise(resolve => {
+            const audio = new Audio(src);
+            audio.onended = resolve;
+            audio.onerror = resolve;
+            audio.play().catch(resolve);
+        });
 
-            // Update nomor di loket (hanya untuk simulasi)
-            let currentNumber = 1;
-            if (queueData[loketKey].number && queueData[loketKey].number.length > 1) {
-                currentNumber = parseInt(queueData[loketKey].number.substring(1)) || 1;
-            }
+        async function playAntrianSound(nomor, loket) {
+            if (!suaraAktif) return;
 
-            const newNumber = (currentNumber + 1).toString().padStart(3, '0');
-            queueData[loketKey].number = prefix + newNumber;
+            await play('/audio/bell.mp3');
+            await play('/audio/nomor_antrian.mp3');
 
-            // Update antrian berikutnya
-            const nextNumber = (currentNumber + 2).toString().padStart(3, '0');
-            queueData[loketKey].next.unshift(prefix + nextNumber);
-            if (queueData[loketKey].next.length > 3) {
-                queueData[loketKey].next.pop();
-            }
+            // for (let c of nomor) {
+            //     await play(`/audio/nomor/${c}.mp3`);
+            // }
 
-            // Update tampilan
-            updateDisplay();
-
-            // Jika ini adalah antrian yang sedang dipanggil, update juga display utama
-            if (randomLoketIndex === 0) { // Misal loket 1 adalah yang sedang dipanggil
-                updateCurrentQueueDisplay(prefix + newNumber,
-                    `LOKET 1 - ${queueData[loketKey].type || 'TIPE LOKET'}`);
-            }
-
-        }, 15000); // 15 detik
-    }
-
-    // Update tampilan semua loket
-    function updateDisplay() {
-        for (let i = 1; i <= 4; i++) {
-            const loketKey = `loket${i}`;
-            document.getElementById(`${loketKey}-number`).textContent = queueData[loketKey].number;
+            await play(`/audio/nomor/${nomor}.mp3`);
+            await play('/audio/silahkan_menuju.mp3');
+            await play('/audio/loket/loket.mp3');
+            await play(`/audio/loket/${loket}.mp3`);
         }
-    }
 
-    // Update display antrian yang sedang dipanggil
-    function updateCurrentQueueDisplay(number, loketInfo) {
-        const currentQueueElement = document.getElementById('current-queue-number');
-        const currentLoketElement = document.getElementById('current-loket-name');
+        /* =====================
+           DOM READY
+        ===================== */
+        document.addEventListener('DOMContentLoaded', () => {
 
-        // Tambahkan animasi
-        currentQueueElement.classList.remove('pulse-animation');
-        void currentQueueElement.offsetWidth; // Trigger reflow
-        currentQueueElement.classList.add('pulse-animation');
+            /* JAM */
+            updateDateTime();
+            setInterval(updateDateTime, 1000);
 
-        // Update teks
-        currentQueueElement.textContent = number;
-        currentLoketElement.textContent = loketInfo;
+            /* TOGGLE SUARA */
+            const toggleSuaraBtn = document.getElementById('toggleSuaraBtn');
+            const suaraBtnText = document.getElementById('suaraBtnText');
 
-        // Update juga antrian berikutnya
-        const nextQueueElements = document.querySelectorAll('#current-queue-section .bg-slate-700 .text-2xl');
-        nextQueueElements[0].textContent = queueData.loket1.next[0];
-        nextQueueElements[1].textContent = queueData.loket2.next[0];
-        nextQueueElements[2].textContent = queueData.loket3.next[0];
-        nextQueueElements[3].textContent = queueData.loket4.next[0];
-    }
-
-    // Rotasi antrian yang sedang dipanggil setiap 20 detik
-    function rotateCurrentQueue() {
-        const lokets = [{
-                number: queueData.loket1.number || '--',
-                name: 'LOKET 1 - ' + (queueData.loket1.type || 'TIPE LOKET')
-            },
-            {
-                number: queueData.loket2.number || '--',
-                name: 'LOKET 2 - ' + (queueData.loket2.type || 'TIPE LOKET')
-            },
-            {
-                number: queueData.loket3.number || '--',
-                name: 'LOKET 3 - ' + (queueData.loket3.type || 'TIPE LOKET')
-            },
-            {
-                number: queueData.loket4.number || '--',
-                name: 'LOKET 4 - ' + (queueData.loket4.type || 'TIPE LOKET')
-            }
-        ];
-
-        let currentIndex = 0;
-
-        setInterval(() => {
-            currentIndex = (currentIndex + 1) % 4;
-            updateCurrentQueueDisplay(lokets[currentIndex].number, lokets[currentIndex].name);
-        }, 20000); // 20 detik
-    }
-
-    // Inisialisasi
-    document.addEventListener('DOMContentLoaded', function() {
-        updateDateTime();
-        setInterval(updateDateTime, 1000); // Update waktu setiap detik
-
-        // Inisialisasi data awal
-        updateDisplay();
-        updateCurrentQueueDisplay(queueData.loket1.number || '--', 'LOKET 1 - PEMBAYARAN');
-
-        // Mulai simulasi
-        // Note: Simulasi hanya untuk demo, pada implementasi nyata data akan diambil dari backend
-        // simulateQueueChange();
-        // rotateCurrentQueue();
-    });
-    </script>
-
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-
-        Echo.channel('antrian')
-            .listen('.panggil.antrian', (e) => {
-
-                console.log('Panggilan diterima:', e);
-                console.log('Status suara aktif:', suaraAktif);
-
-                // Nomor besar
-                const currentQueue = document.getElementById('current-queue-number');
-                currentQueue.textContent = e.nomor;
-
-                // Animasi
-                currentQueue.classList.remove('pulse-animation');
-                void currentQueue.offsetWidth;
-                currentQueue.classList.add('pulse-animation');
-
-                // Update loket
-                const loketEl = document.getElementById(`loket${e.loket}-number`);
-                if (loketEl) {
-                    loketEl.textContent = e.nomor;
+            toggleSuaraBtn.addEventListener('click', () => {
+                if (!audioContext) {
+                    audioContext = new(window.AudioContext || window.webkitAudioContext)();
                 }
 
-                // 🔊 Play suara
-                console.log('Memanggil fungsi playAntrianSound dengan nomor:', e.nomor, 'dan loket:', e.loket);
-                playAntrianSound(e.nomor, e.loket);
+                suaraAktif = !suaraAktif;
+
+                toggleSuaraBtn.className = suaraAktif ?
+                    'bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xl font-bold py-4 px-8 rounded-2xl' :
+                    'bg-gradient-to-r from-red-600 to-red-700 text-white text-xl font-bold py-4 px-8 rounded-2xl';
+
+                suaraBtnText.textContent = suaraAktif ? 'SUARA AKTIF' : 'SUARA MATI';
             });
 
-    });
+            /* =====================
+               PUSHER / ECHO
+            ===================== */
+            Echo.channel('antrian')
+                .listen('.panggil.antrian', (e) => {
+
+                    console.log('EVENT:', e);
+
+                    const currentQueue = document.getElementById('current-queue-number');
+                    currentQueue.textContent = e.nomor;
+
+                    currentQueue.classList.remove('pulse-animation');
+                    void currentQueue.offsetWidth;
+                    currentQueue.classList.add('pulse-animation');
+
+                    const loketEl = document.getElementById(`loket${e.loket}-number`);
+                    if (loketEl) loketEl.textContent = e.nomor;
+
+                    playAntrianSound(e.nomor, e.loket);
+                });
+        });
     </script>
+
+
     <script>
-    async function playAntrianSound(nomor, loket) {
-        // Hanya mainkan suara jika fitur suara diaktifkan
-        if (!suaraAktif) {
-            console.log('Pemutaran suara dinonaktifkan, lewati pemutaran untuk:', nomor);
-            return;
-        }
-        
-        console.log('Memutar suara untuk nomor:', nomor, 'di loket:', loket);
-        
+        document.addEventListener('DOMContentLoaded', function() {
+
+            Echo.channel('antrian')
+                .listen('.panggil.antrian', (e) => {
+
+                    console.log('Panggilan diterima:', e);
+                    console.log('Status suara aktif:', suaraAktif);
+
+                    // Nomor besar
+                    const currentQueue = document.getElementById('current-queue-number');
+                    currentQueue.textContent = e.nomor;
+
+                    // Animasi
+                    currentQueue.classList.remove('pulse-animation');
+                    void currentQueue.offsetWidth;
+                    currentQueue.classList.add('pulse-animation');
+
+                    // Update loket
+                    const loketEl = document.getElementById(`loket${e.loket}-number`);
+                    if (loketEl) {
+                        loketEl.textContent = e.nomor;
+                    }
+
+                    // 🔊 Play suara
+                    console.log('Memanggil fungsi playAntrianSound dengan nomor:', e.nomor, 'dan loket:', e
+                        .loket);
+                    playAntrianSound(e.nomor, e.loket);
+                });
+
+        });
+    </script>
+
+    <script>
+        let suaraAktif = false;
+        let audioContext = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+
+            const toggleSuaraBtn = document.getElementById('toggleSuaraBtn');
+            const suaraBtnText = document.getElementById('suaraBtnText');
+
+            toggleSuaraBtn.addEventListener('click', () => {
+
+                // unlock audio (WAJIB untuk Chrome)
+                if (!audioContext) {
+                    audioContext = new(window.AudioContext || window.webkitAudioContext)();
+                }
+
+                suaraAktif = !suaraAktif;
+
+                if (suaraAktif) {
+                    toggleSuaraBtn.className =
+                        'bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xl font-bold py-4 px-8 rounded-2xl';
+                    suaraBtnText.textContent = 'SUARA AKTIF';
+                } else {
+                    toggleSuaraBtn.className =
+                        'bg-gradient-to-r from-red-600 to-red-700 text-white text-xl font-bold py-4 px-8 rounded-2xl';
+                    suaraBtnText.textContent = 'SUARA MATI';
+                }
+
+                console.log('SUARA:', suaraAktif);
+            });
+
+        });
+
+        // helper play
         const play = (src) => new Promise(resolve => {
             const audio = new Audio(src);
             audio.onended = resolve;
-            audio.play().catch(e => {
-                console.warn('Gagal memutar suara:', e);
-                resolve(); // Tetap lanjutkan meskipun ada error
-            });
+            audio.onerror = resolve;
+            audio.play().catch(resolve);
         });
 
-        try {
-            await play('/audio/bell.mp3');
-
-            for (let char of nomor) {
-                await play(`/audio/nomor/${char}.mp3`);
-            }
-
-            await play('/audio/loket/loket.mp3');
-            await play(`/audio/loket/${loket}.mp3`);
-        } catch (e) {
-            console.error('Audio error:', e);
-        }
-    }
+        // MAIN SOUND FUNCTION
     </script>
 
-    
-    // =====================
-    // AUDIO TOGGLE FUNCTIONALITY
-    // =====================
-    let suaraAktif = true; // Default aktif di display
-    const toggleSuaraBtn = document.getElementById('toggleSuaraBtn');
-    const suaraBtnText = document.getElementById('suaraBtnText');
-
-    // Toggle status suara
-    toggleSuaraBtn.addEventListener('click', function() {
-        suaraAktif = !suaraAktif;
-        
-        if (suaraAktif) {
-            // Ubah tampilan tombol menjadi aktif
-            this.className = 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-xl font-bold py-4 px-8 rounded-2xl flex items-center justify-center shadow-lg transform transition-all duration-300 hover:scale-105';
-            suaraBtnText.textContent = 'SUARA AKTIF';
-            this.innerHTML = '<i class="fas fa-volume-off mr-3 text-2xl"></i><span id="suaraBtnText">SUARA AKTIF</span>';
-        } else {
-            // Kembali ke tampilan tidak aktif
-            this.className = 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white text-xl font-bold py-4 px-8 rounded-2xl flex items-center justify-center shadow-lg transform transition-all duration-300 hover:scale-105';
-            suaraBtnText.textContent = 'SUARA MATI';
-            this.innerHTML = '<i class="fas fa-volume-mute mr-3 text-2xl"></i><span id="suaraBtnText">SUARA MATI</span>';
-        }
-    });
-
-    // Fungsi untuk memutar suara antrian
-    async function playAntrianSound(nomor, loket) {
-        // Hanya mainkan suara jika fitur suara diaktifkan
-        if (!suaraAktif) return;
-        
-        const play = (src) => new Promise(resolve => {
-            const audio = new Audio(src);
-            audio.onended = resolve;
-            audio.play().catch(e => {
-                console.warn('Gagal memutar suara:', e);
-                resolve(); // Tetap lanjutkan meskipun ada error
-            });
-        });
-
-        try {
-            await play('/audio/bell.mp3');
-
-            for (let char of nomor) {
-                await play(`/audio/nomor/${char}.mp3`);
-            }
-
-            await play('/audio/loket/loket.mp3');
-            await play(`/audio/loket/${loket}.mp3`);
-        } catch (e) {
-            console.error('Audio error:', e);
-        }
-    }
-    </script>
 
 
 </body>
