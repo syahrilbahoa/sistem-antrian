@@ -10,8 +10,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome untuk ikon -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Chart.js untuk grafik -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         /* Custom styles */
         .admin-bg {
@@ -86,15 +84,6 @@
                 opacity: 1;
                 transform: translateY(0);
             }
-        }
-
-        .stat-card {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
         }
 
         .table-row-hover:hover {
@@ -176,7 +165,7 @@
                     <div class="mb-4 md:mb-0">
                         <h1 class="text-2xl font-bold">
                             <i class="fas fa-shield-alt text-blue-500 mr-3"></i>
-                            Dashboard Admin
+                            Data Petugas
                         </h1>
                         <p class="text-gray-400">Sistem Manajemen Antrian Klinik</p>
                     </div>
@@ -246,84 +235,192 @@
                 </div>
             </header>
 
-            <!-- Main Dashboard Content -->
-            <div class="p-6">
-                <!-- Statistik Utama -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <div class="glass-card rounded-xl p-6 stat-card">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="text-gray-400 text-sm">Total Antrian Hari Ini</p>
-                                <p class="text-3xl font-bold mt-2" id="totalQueueToday">0</p>
-                                <div class="flex items-center mt-2">
-                                    <i class="fas fa-arrow-up text-green-400 mr-2"></i>
-                                    <span class="text-green-400 text-sm" id="queueChange">+0% dari kemarin</span>
-                                </div>
-                            </div>
-                            <div class="bg-blue-500/20 p-3 rounded-full">
-                                <i class="fas fa-list-ol text-blue-400 text-2xl"></i>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="glass-card rounded-xl p-6 stat-card">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="text-gray-400 text-sm">Petugas Aktif</p>
-                                <p class="text-3xl font-bold mt-2" id="activeOfficers">0</p>
-                                <div class="flex items-center mt-2">
-                                    <i class="fas fa-user-check text-green-400 mr-2"></i>
-                                    <span class="text-green-400 text-sm" id="officersStatus">0 aktif</span>
-                                </div>
-                            </div>
-                            <div class="bg-green-500/20 p-3 rounded-full">
-                                <i class="fas fa-user-md text-green-400 text-2xl"></i>
-                            </div>
-                        </div>
-                    </div>
-
-
-
+            <!-- Tabel Petugas -->
+            <div class="glass-card rounded-xl p-6 mb-8">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold">
+                        <i class="fas fa-user-md text-green-400 mr-3"></i>
+                        Daftar Petugas
+                    </h2>
+                    <button id="btnAddOfficer" class="btn-primary px-4 py-2 rounded-lg flex items-center">
+                        <i class="fas fa-user-plus mr-2"></i> Tambah Petugas
+                    </button>
                 </div>
 
-                <!-- Chart dan Tabel -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                    <!-- Grafik Statistik -->
-                    <div class="glass-card rounded-xl p-6">
-                        <div class="flex justify-between items-center mb-6">
-                            <h2 class="text-xl font-bold">
-                                <i class="fas fa-chart-line text-blue-400 mr-3"></i>
-                                Statistik Harian
-                            </h2>
-                            <select class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm">
-                                <option>7 Hari Terakhir</option>
-                                <option>30 Hari Terakhir</option>
-                                <option>Bulan Ini</option>
-                            </select>
-                        </div>
-                        <div class="h-64">
-                            <canvas id="dailyChart"></canvas>
-                        </div>
-                    </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="border-b border-gray-700">
+                                <th class="py-3 px-4 text-left">No</th>
+                                <th class="py-3 px-4 text-left">Nama</th>
+                                <th class="py-3 px-4 text-left">Email</th>
+                                <th class="py-3 px-4 text-left">Role</th>
+                                <th class="py-3 px-4 text-left">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="officerTable">
+                            @forelse ($data as $key => $item)
+                            <tr class="border-b border-gray-800 table-row-hover">
+                                <td class="py-4 px-4 font-medium">{{ $key + 1}}</td>
+                                <td class="py-3 px-4">{{$item->name}}</td>
+                                <td class="py-3 px-4">{{$item->email}}</td>
+                                <td class="py-3 px-4">{{$item->role}}</td>
+                                <td class="py-4 px-4">
+                                    <div class="flex space-x-2">
+                                        <button
+                                            onclick="showEditOfficerModal({{$item->id}}, '{{$item->name}}', '{{$item->email}}', '{{$item->role}}')"
+                                            class="bg-blue-500/20 text-blue-400 p-2 rounded-lg hover:bg-blue-500/30 edit-btn">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <form action="{{ route('pegawai.hapus', $item->id) }}" method="POST"
+                                            onsubmit="return confirm('Yakin ingin menghapus data ini?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                class="bg-red-500/20 text-red-400 p-2 rounded-lg hover:bg-red-500/30">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            @empty
 
-                    <!-- Aktivitas Terbaru -->
-                    <div class="glass-card rounded-xl p-6">
-                        <h2 class="text-xl font-bold mb-6">
-                            <i class="fas fa-history text-green-400 mr-3"></i>
-                            Aktivitas Terbaru
-                        </h2>
-                        <div class="space-y-4 max-h-64 overflow-y-auto pr-2" id="activityLogContainer">
-                            <!-- Aktivitas terbaru akan diisi secara dinamis dari backend -->
-                        </div>
-                    </div>
+                            @endforelse
+
+                        </tbody>
+                    </table>
                 </div>
             </div>
-
         </div>
     </div>
     </div>
 
+    <!-- Modal Tambah Petugas -->
+    <div id="addOfficerModal" class="modal">
+        <div class="modal-content bg-gray-800 rounded-xl w-11/12 md:w-1/2 p-6 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold">
+                    <i class="fas fa-user-plus text-blue-400 mr-3"></i>
+                    Tambah Petugas Baru
+                </h3>
+                <button id="closeAddOfficerModal" class="text-gray-400 hover:text-white text-2xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
 
+            <form id="addOfficerForm" method="post" action="{{route('admin.simpan.petugas')}}">
+                @csrf
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <label class="block text-gray-300 mb-2">Nama Lengkap</label>
+                        <input type="text" name="name"
+                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500"
+                            placeholder="Masukkan nama petugas" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-300 mb-2">email</label>
+                        <input type="email" name="email"
+                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500"
+                            placeholder="email@klinikanugrah.com" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-300 mb-2">password</label>
+                        <input type="password" name="password"
+                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500"
+                            placeholder="Masukkan password" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-300 mb-2">Role</label>
+                        <select name="role"
+                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500"
+                            required>
+                            <option value="">Pilih Role</option>
+                            <option value="petugas">Petugas Loket</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-4">
+                    <button type="button" id="cancelAddOfficer"
+                        class="bg-gray-700 hover:bg-gray-600 px-6 py-3 rounded-lg">
+                        Batal
+                    </button>
+                    <button type="submit" class="btn-primary px-6 py-3 rounded-lg flex items-center">
+                        <i class="fas fa-save mr-2"></i> Simpan Petugas
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Edit Petugas -->
+    <div id="editOfficerModal" class="modal">
+        <div class="modal-content bg-gray-800 rounded-xl w-11/12 md:w-1/2 p-6 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold">
+                    <i class="fas fa-user-edit text-yellow-400 mr-3"></i>
+                    Edit Petugas
+                </h3>
+                <button id="closeEditOfficerModal" class="text-gray-400 hover:text-white text-2xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <form id="editOfficerForm" method="post">
+                @csrf
+                @method('PUT')
+                <input type="hidden" name="id" id="editOfficerId">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <label class="block text-gray-300 mb-2">Nama Lengkap</label>
+                        <input type="text" name="name" id="editName"
+                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500"
+                            placeholder="Masukkan nama petugas" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-300 mb-2">Email</label>
+                        <input type="email" name="email" id="editEmail"
+                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500"
+                            placeholder="email@klinikanugrah.com" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-300 mb-2">Password</label>
+                        <input type="password" name="password" id="editPassword"
+                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500"
+                            placeholder="Masukkan password baru">
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-300 mb-2">Role</label>
+                        <select name="role" id="editRole"
+                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500"
+                            required>
+                            <option value="">Pilih Role</option>
+                            <option value="petugas">Petugas Loket</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-4">
+                    <button type="button" id="cancelEditOfficer"
+                        class="bg-gray-700 hover:bg-gray-600 px-6 py-3 rounded-lg">
+                        Batal
+                    </button>
+                    <button type="submit" class="btn-warning px-6 py-3 rounded-lg flex items-center">
+                        <i class="fas fa-save mr-2"></i> Perbarui Petugas
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <!-- Modal Logout Confirmation -->
     <div id="logoutModal" class="modal">
@@ -372,8 +469,9 @@
     </div>
 
     <script>
-        // Chart instance
-        let dailyChart = null;
+        // Data petugas akan diambil dari backend
+        let officersData = [];
+
         let dropdownVisible = false;
         let notificationVisible = false;
 
@@ -385,9 +483,6 @@
             // Setup dropdown menu
             setupDropdowns();
 
-            // Setup chart
-            setupCharts();
-
             // Setup event listeners
             setupEventListeners();
 
@@ -397,66 +492,8 @@
 
         // Update dashboard dengan data terbaru
         function updateDashboard() {
-            // Update statistik harian
-            document.getElementById('totalQueueToday').textContent = Math.floor(Math.random() * 100);
-            document.getElementById('activeOfficers').textContent = Math.floor(Math.random() * 10);
-
-            // Update aktivitas terbaru
-            updateActivityLog();
-        }
-
-        // Update aktivitas terbaru
-        function updateActivityLog() {
-            const activityContainer = document.getElementById('activityLogContainer');
-            activityContainer.innerHTML = '';
-
-            // Contoh data aktivitas
-            const activities = [{
-                    icon: 'fa-user-plus',
-                    text: 'Petugas baru ditambahkan',
-                    time: '2 menit lalu',
-                    color: 'text-blue-400'
-                },
-                {
-                    icon: 'fa-list-ol',
-                    text: 'Antrian dipanggil',
-                    time: '5 menit lalu',
-                    color: 'text-green-400'
-                },
-                {
-                    icon: 'fa-user-clock',
-                    text: 'Petugas istirahat',
-                    time: '10 menit lalu',
-                    color: 'text-yellow-400'
-                },
-                {
-                    icon: 'fa-user-check',
-                    text: 'Petugas kembali bertugas',
-                    time: '15 menit lalu',
-                    color: 'text-green-400'
-                },
-                {
-                    icon: 'fa-exclamation-triangle',
-                    text: 'Antrian terlewat',
-                    time: '20 menit lalu',
-                    color: 'text-red-400'
-                }
-            ];
-
-            activities.forEach(activity => {
-                const activityElement = document.createElement('div');
-                activityElement.className = 'flex items-start p-3 bg-gray-800/50 rounded-lg';
-                activityElement.innerHTML = `
-                    <div class="mr-3 text-lg ${activity.color}">
-                        <i class="fas ${activity.icon}"></i>
-                    </div>
-                    <div class="flex-1">
-                        <p class="text-white">${activity.text}</p>
-                        <p class="text-gray-400 text-sm">${activity.time}</p>
-                    </div>
-                `;
-                activityContainer.appendChild(activityElement);
-            });
+            // Update tabel petugas (tidak perlu karena menggunakan data statis sekarang)
+            // updateOfficerTable(); // Tidak digunakan karena tabel statis
         }
 
         // Setup dropdown menu
@@ -514,95 +551,54 @@
             });
         }
 
-        // Setup charts
-        function setupCharts() {
-            const ctx = document.getElementById('dailyChart').getContext('2d');
-
-            // Data grafik akan diambil dari backend
-            const days = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
-            const queueData = [65, 59, 80, 81, 56, 55, 40];
-            const servedData = [45, 39, 60, 61, 36, 35, 20];
-
-            dailyChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: days,
-                    datasets: [{
-                            label: 'Total Antrian',
-                            data: queueData,
-                            borderColor: 'rgb(59, 130, 246)',
-                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                            borderWidth: 2,
-                            tension: 0.4,
-                            fill: true
-                        },
-                        {
-                            label: 'Terlayani',
-                            data: servedData,
-                            borderColor: 'rgb(16, 185, 129)',
-                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                            borderWidth: 2,
-                            tension: 0.4,
-                            fill: true
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            labels: {
-                                color: '#9ca3af'
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                color: 'rgba(75, 85, 99, 0.3)'
-                            },
-                            ticks: {
-                                color: '#9ca3af'
-                            }
-                        },
-                        x: {
-                            grid: {
-                                color: 'rgba(75, 85, 99, 0.3)'
-                            },
-                            ticks: {
-                                color: '#9ca3af'
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
         // Setup event listeners
         function setupEventListeners() {
+            // Tombol tambah petugas
+            document.getElementById('btnAddOfficer').addEventListener('click', function() {
+                showAddOfficerModal();
+            });
+
             // Tombol logout
             document.getElementById('btnLogout').addEventListener('click', function() {
                 showLogoutModal();
             });
-
-            // Navigation links
-
-
-            // Quick actions
-            document.querySelectorAll('.bg-blue-900\\/30, .bg-green-900\\/30, .bg-purple-900\\/30, .bg-red-900\\/30')
-                .forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const text = this.querySelector('span').textContent;
-                        // Fungsi untuk membuka aksi cepat akan diimplementasikan sesuai kebutuhan
-                        // showNotification(`Membuka ${text.toLowerCase()}...`, 'info');
-                    });
-                });
         }
 
         // Setup modals
         function setupModals() {
+            // Modal tambah petugas
+            const addOfficerModal = document.getElementById('addOfficerModal');
+            const closeAddOfficerBtn = document.getElementById('closeAddOfficerModal');
+            const cancelAddOfficerBtn = document.getElementById('cancelAddOfficer');
+
+            closeAddOfficerBtn.addEventListener('click', function() {
+                addOfficerModal.style.display = 'none';
+            });
+
+
+            cancelAddOfficerBtn.addEventListener('click', function() {
+                addOfficerModal.style.display = 'none';
+            });
+
+            // Form tambah petugas
+            document.getElementById('addOfficerForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                addNewOfficer();
+            });
+
+            // Modal edit petugas
+            const editOfficerModal = document.getElementById('editOfficerModal');
+            const closeEditOfficerBtn = document.getElementById('closeEditOfficerModal');
+            const cancelEditOfficerBtn = document.getElementById('cancelEditOfficer');
+
+            closeEditOfficerBtn.addEventListener('click', function() {
+                editOfficerModal.style.display = 'none';
+            });
+
+            cancelEditOfficerBtn.addEventListener('click', function() {
+                editOfficerModal.style.display = 'none';
+            });
+
             // Modal logout
             const logoutModal = document.getElementById('logoutModal');
             const closeLogoutBtn = document.getElementById('closeLogoutModal');
@@ -623,10 +619,46 @@
 
             // Tutup modal saat klik di luar konten
             window.addEventListener('click', function(event) {
+                if (event.target === addOfficerModal) {
+                    addOfficerModal.style.display = 'none';
+                }
+                if (event.target === editOfficerModal) {
+                    editOfficerModal.style.display = 'none';
+                }
                 if (event.target === logoutModal) {
                     logoutModal.style.display = 'none';
                 }
             });
+        }
+
+        // Tampilkan modal tambah petugas
+        function showAddOfficerModal() {
+            const modal = document.getElementById('addOfficerModal');
+            modal.style.display = 'flex';
+
+            // Reset form
+            document.getElementById('addOfficerForm').reset();
+        }
+
+        // Tambah petugas baru
+        function addNewOfficer() {
+            const form = document.getElementById('addOfficerForm');
+            // Submit form secara langsung
+            form.submit();
+        }
+
+        // Tampilkan modal edit petugas
+        function showEditOfficerModal(id, name, email, role) {
+            const modal = document.getElementById('editOfficerModal');
+            document.getElementById('editOfficerId').value = id;
+            document.getElementById('editName').value = name;
+            document.getElementById('editEmail').value = email;
+            document.getElementById('editRole').value = role;
+
+            // Reset password field
+            document.getElementById('editPassword').value = '';
+
+            modal.style.display = 'flex';
         }
 
         // Tampilkan modal logout
@@ -640,48 +672,8 @@
             dropdownVisible = false;
         }
 
-        // Proses logout
-        function performLogout() {
-            showNotification('Sedang mengeluarkan Anda dari sistem...', 'info');
 
-            // Tutup modal logout
-            document.getElementById('logoutModal').style.display = 'none';
 
-            // Simulasi proses logout
-            setTimeout(() => {
-                // Tampilkan notifikasi sukses
-                showNotification('Logout berhasil! Mengalihkan ke halaman login...', 'success');
-
-                // Simulasi redirect ke halaman login setelah 2 detik
-                setTimeout(() => {
-                    // Dalam implementasi nyata, ini akan mengarahkan ke halaman login
-                    // window.location.href = 'login.html';
-
-                    // Untuk demo, kita reset data dan tampilkan pesan
-                    alert(
-                        'Logout berhasil!\n\nAnda telah keluar dari sistem admin.\n\nSekarang Anda akan diarahkan ke halaman login.'
-                    );
-
-                    // Reset UI untuk demo
-                    resetAdminUI();
-                }, 2000);
-            }, 1000);
-        }
-
-        // Reset UI untuk demo logout
-        function resetAdminUI() {
-            // Update nama user di header
-            const userName = document.querySelector('.text-left .font-medium');
-            if (userName) {
-                userName.textContent = '[Telah Logout]';
-            }
-
-            // Update notifikasi
-            const notificationBadge = document.querySelector('.notification-badge');
-            if (notificationBadge) {
-                notificationBadge.textContent = '0';
-            }
-        }
 
         // Tampilkan notifikasi
         function showNotification(message, type) {
@@ -733,6 +725,17 @@
                     showNotification('Terjadi kesalahan saat logout', 'warning');
                 });
         }
+    </script>
+    <script>
+        document.getElementById('editOfficerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const officerId = document.getElementById('editOfficerId').value;
+            const form = document.getElementById('editOfficerForm');
+
+            form.action = `/admin/petugas/edit/${officerId}`;
+            form.submit();
+        });
     </script>
 
 </body>

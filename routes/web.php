@@ -11,7 +11,19 @@ Route::post('/login', [LoginController::class, 'login'])->name('login.process');
 
 Route::middleware('auth')->group(function () {
     Route::get('/petugas', [PetugasController::class, 'index']);
-    Route::get('/admin', [AdminController::class, 'index']);
+
+    // admin 
+    Route::get('/admin', [AdminController::class, 'index'])->name('admin.dashbord');
+    Route::get('/admin/petugas', [AdminController::class, 'petugas'])->name('admin.petugas');
+    Route::get('/admin/antrian', [AdminController::class, 'antrian'])->name('admin.antrian');
+    Route::post('/admin/simpan_petugas', [AdminController::class, 'simpan_petugas'])->name('admin.simpan.petugas');
+    Route::put('/admin/petugas/edit/{id}', [AdminController::class, 'update_pegawai'])
+        ->name('pegawai.update');
+    Route::delete('/admin/petugas/hapus/{id}', [AdminController::class, 'hapus_pegawai'])
+        ->name('pegawai.hapus');
+
+    //end admin
+
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 });
 

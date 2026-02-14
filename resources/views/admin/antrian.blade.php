@@ -10,8 +10,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome untuk ikon -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Chart.js untuk grafik -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         /* Custom styles */
         .admin-bg {
@@ -86,15 +84,6 @@
                 opacity: 1;
                 transform: translateY(0);
             }
-        }
-
-        .stat-card {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
         }
 
         .table-row-hover:hover {
@@ -176,7 +165,7 @@
                     <div class="mb-4 md:mb-0">
                         <h1 class="text-2xl font-bold">
                             <i class="fas fa-shield-alt text-blue-500 mr-3"></i>
-                            Dashboard Admin
+                            Data Antrian
                         </h1>
                         <p class="text-gray-400">Sistem Manajemen Antrian Klinik</p>
                     </div>
@@ -246,84 +235,251 @@
                 </div>
             </header>
 
-            <!-- Main Dashboard Content -->
+            <!-- Konten Antrian -->
             <div class="p-6">
-                <!-- Statistik Utama -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <div class="glass-card rounded-xl p-6 stat-card">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="text-gray-400 text-sm">Total Antrian Hari Ini</p>
-                                <p class="text-3xl font-bold mt-2" id="totalQueueToday">0</p>
-                                <div class="flex items-center mt-2">
-                                    <i class="fas fa-arrow-up text-green-400 mr-2"></i>
-                                    <span class="text-green-400 text-sm" id="queueChange">+0% dari kemarin</span>
-                                </div>
-                            </div>
-                            <div class="bg-blue-500/20 p-3 rounded-full">
-                                <i class="fas fa-list-ol text-blue-400 text-2xl"></i>
-                            </div>
+                <div class="glass-card rounded-xl p-6 mb-8">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-bold">
+                            <i class="fas fa-list-ol text-blue-400 mr-3"></i>
+                            Daftar Antrian Hari Ini
+                        </h2>
+                        <div class="flex space-x-4">
+                            <button class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg">
+                                <i class="fas fa-sync-alt mr-2"></i> Refresh
+                            </button>
+                            <button class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg">
+                                <i class="fas fa-print mr-2"></i> Cetak Laporan
+                            </button>
                         </div>
                     </div>
 
-                    <div class="glass-card rounded-xl p-6 stat-card">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="text-gray-400 text-sm">Petugas Aktif</p>
-                                <p class="text-3xl font-bold mt-2" id="activeOfficers">0</p>
-                                <div class="flex items-center mt-2">
-                                    <i class="fas fa-user-check text-green-400 mr-2"></i>
-                                    <span class="text-green-400 text-sm" id="officersStatus">0 aktif</span>
-                                </div>
-                            </div>
-                            <div class="bg-green-500/20 p-3 rounded-full">
-                                <i class="fas fa-user-md text-green-400 text-2xl"></i>
-                            </div>
-                        </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="border-b border-gray-700">
+                                    <th class="py-3 px-4 text-left">No</th>
+                                    <th class="py-3 px-4 text-left">No. Antrian</th>
+                                    <th class="py-3 px-4 text-left">Nama Dokter</th>
+                                    <th class="py-3 px-4 text-left">Waktu Ambil</th>
+                                    <th class="py-3 px-4 text-left">Loket Tujuan</th>
+                                    <th class="py-3 px-4 text-left">Status</th>
+                                    <th class="py-3 px-4 text-left">Waktu Layanan</th>
+                                    <th class="py-3 px-4 text-left">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="queueTable">
+                                @forelse ($data as $key => $item)
+                                <tr class="border-b border-gray-800 table-row-hover">
+                                    <td class="py-3 px-4 font-medium">{{$key + 1}}</td>
+                                    <td class="py-3 px-4">{{$item->nomor_antrian}}</td>
+                                    <td class="py-3 px-4">{{$item->nama_dokter}}</td>
+                                    <td class="py-3 px-4">{{$item->waktu_ambil}}</td>
+                                    <td class="py-3 px-4">{{$item->nama_loket ?? 'belum dilayani'}}</td>
+                                    <td class="py-3 px-4">
+                                        @if($item->status == 'menunggu')
+                                        <span class="bg-yellow-500/20 text-yellow-400 px-3 py-1 rounded-full text-sm">
+                                            {{ $item->status }}
+                                        </span>
+                                        @elseif($item->status == 'dipanggil')
+                                        <span class="bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full text-sm">
+                                            {{ $item->status }}
+                                        </span>
+                                        @elseif($item->status == 'selesai')
+                                        <span class="bg-green-500/20 text-green-400 px-3 py-1 rounded-full text-sm">
+                                            {{ $item->status }}
+                                        </span>
+                                        @else
+                                        <span class="bg-gray-500/20 text-gray-400 px-3 py-1 rounded-full text-sm">
+                                            {{ $item->status }}
+                                        </span>
+                                        @endif
+                                    </td>
+
+                                    <td class="py-3 px-4">{{$item->waktu_panggil}}</td>
+                                    <td class="py-3 px-4">
+                                        <div class="flex space-x-2">
+                                            <button
+                                                class="bg-blue-500/20 text-blue-400 p-2 rounded-lg hover:bg-blue-500/30">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button
+                                                class="bg-green-500/20 text-green-400 p-2 rounded-lg hover:bg-green-500/30">
+                                                <i class="fas fa-print"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                @empty
+
+                                @endforelse
+                                <!-- <tr class="border-b border-gray-800 table-row-hover">
+                                    <td class="py-3 px-4 font-medium">A-001</td>
+                                    <td class="py-3 px-4">08:00</td>
+                                    <td class="py-3 px-4">Pendaftaran 1</td>
+                                    <td class="py-3 px-4">
+                                        <span
+                                            class="bg-green-500/20 text-green-400 px-3 py-1 rounded-full text-sm">Selesai</span>
+                                    </td>
+                                    <td class="py-3 px-4">08:15</td>
+                                    <td class="py-3 px-4">
+                                        <div class="flex space-x-2">
+                                            <button
+                                                class="bg-blue-500/20 text-blue-400 p-2 rounded-lg hover:bg-blue-500/30">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button
+                                                class="bg-green-500/20 text-green-400 p-2 rounded-lg hover:bg-green-500/30">
+                                                <i class="fas fa-print"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="border-b border-gray-800 table-row-hover">
+                                    <td class="py-3 px-4 font-medium">A-002</td>
+                                    <td class="py-3 px-4">08:05</td>
+                                    <td class="py-3 px-4">Pendaftaran 1</td>
+                                    <td class="py-3 px-4">
+                                        <span
+                                            class="bg-green-500/20 text-green-400 px-3 py-1 rounded-full text-sm">Selesai</span>
+                                    </td>
+                                    <td class="py-3 px-4">08:20</td>
+                                    <td class="py-3 px-4">
+                                        <div class="flex space-x-2">
+                                            <button
+                                                class="bg-blue-500/20 text-blue-400 p-2 rounded-lg hover:bg-blue-500/30">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button
+                                                class="bg-green-500/20 text-green-400 p-2 rounded-lg hover:bg-green-500/30">
+                                                <i class="fas fa-print"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="border-b border-gray-800 table-row-hover">
+                                    <td class="py-3 px-4 font-medium">A-003</td>
+                                    <td class="py-3 px-4">08:10</td>
+                                    <td class="py-3 px-4">Pendaftaran 2</td>
+                                    <td class="py-3 px-4">
+                                        <span
+                                            class="bg-yellow-500/20 text-yellow-400 px-3 py-1 rounded-full text-sm">Diproses</span>
+                                    </td>
+                                    <td class="py-3 px-4">-</td>
+                                    <td class="py-3 px-4">
+                                        <div class="flex space-x-2">
+                                            <button
+                                                class="bg-blue-500/20 text-blue-400 p-2 rounded-lg hover:bg-blue-500/30">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button
+                                                class="bg-green-500/20 text-green-400 p-2 rounded-lg hover:bg-green-500/30">
+                                                <i class="fas fa-print"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="border-b border-gray-800 table-row-hover">
+                                    <td class="py-3 px-4 font-medium">A-004</td>
+                                    <td class="py-3 px-4">08:15</td>
+                                    <td class="py-3 px-4">Farmasi</td>
+                                    <td class="py-3 px-4">
+                                        <span
+                                            class="bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full text-sm">Menunggu</span>
+                                    </td>
+                                    <td class="py-3 px-4">-</td>
+                                    <td class="py-3 px-4">
+                                        <div class="flex space-x-2">
+                                            <button
+                                                class="bg-blue-500/20 text-blue-400 p-2 rounded-lg hover:bg-blue-500/30">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button
+                                                class="bg-green-500/20 text-green-400 p-2 rounded-lg hover:bg-green-500/30">
+                                                <i class="fas fa-print"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="border-b border-gray-800 table-row-hover">
+                                    <td class="py-3 px-4 font-medium">A-005</td>
+                                    <td class="py-3 px-4">08:20</td>
+                                    <td class="py-3 px-4">Pendaftaran 1</td>
+                                    <td class="py-3 px-4">
+                                        <span
+                                            class="bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full text-sm">Menunggu</span>
+                                    </td>
+                                    <td class="py-3 px-4">-</td>
+                                    <td class="py-3 px-4">
+                                        <div class="flex space-x-2">
+                                            <button
+                                                class="bg-blue-500/20 text-blue-400 p-2 rounded-lg hover:bg-blue-500/30">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button
+                                                class="bg-green-500/20 text-green-400 p-2 rounded-lg hover:bg-green-500/30">
+                                                <i class="fas fa-print"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr> -->
+                            </tbody>
+                        </table>
                     </div>
-
-
-
                 </div>
 
-                <!-- Chart dan Tabel -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                    <!-- Grafik Statistik -->
+                <!-- Statistik Antrian -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                     <div class="glass-card rounded-xl p-6">
-                        <div class="flex justify-between items-center mb-6">
-                            <h2 class="text-xl font-bold">
-                                <i class="fas fa-chart-line text-blue-400 mr-3"></i>
-                                Statistik Harian
-                            </h2>
-                            <select class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm">
-                                <option>7 Hari Terakhir</option>
-                                <option>30 Hari Terakhir</option>
-                                <option>Bulan Ini</option>
-                            </select>
-                        </div>
-                        <div class="h-64">
-                            <canvas id="dailyChart"></canvas>
+                        <div class="flex items-center">
+                            <div class="bg-blue-500/20 p-3 rounded-full mr-4">
+                                <i class="fas fa-list-ol text-blue-400 text-xl"></i>
+                            </div>
+                            <div>
+                                <p class="text-gray-400 text-sm">Total Antrian Hari Ini</p>
+                                <p class="text-2xl font-bold mt-1" id="totalQueueToday">0</p>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Aktivitas Terbaru -->
                     <div class="glass-card rounded-xl p-6">
-                        <h2 class="text-xl font-bold mb-6">
-                            <i class="fas fa-history text-green-400 mr-3"></i>
-                            Aktivitas Terbaru
-                        </h2>
-                        <div class="space-y-4 max-h-64 overflow-y-auto pr-2" id="activityLogContainer">
-                            <!-- Aktivitas terbaru akan diisi secara dinamis dari backend -->
+                        <div class="flex items-center">
+                            <div class="bg-green-500/20 p-3 rounded-full mr-4">
+                                <i class="fas fa-check-circle text-green-400 text-xl"></i>
+                            </div>
+                            <div>
+                                <p class="text-gray-400 text-sm">Sudah Dilayani</p>
+                                <p class="text-2xl font-bold mt-1" id="servedToday">0</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card rounded-xl p-6">
+                        <div class="flex items-center">
+                            <div class="bg-yellow-500/20 p-3 rounded-full mr-4">
+                                <i class="fas fa-clock text-yellow-400 text-xl"></i>
+                            </div>
+                            <div>
+                                <p class="text-gray-400 text-sm">Belum Dilayani</p>
+                                <p class="text-2xl font-bold mt-1" id="waitingToday">0</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card rounded-xl p-6">
+                        <div class="flex items-center">
+                            <div class="bg-red-500/20 p-3 rounded-full mr-4">
+                                <i class="fas fa-times-circle text-red-400 text-xl"></i>
+                            </div>
+                            <div>
+                                <p class="text-gray-400 text-sm">Terlewatkan</p>
+                                <p class="text-2xl font-bold mt-1" id="missedToday">0</p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
-    </div>
-
-
 
     <!-- Modal Logout Confirmation -->
     <div id="logoutModal" class="modal">
@@ -372,21 +528,19 @@
     </div>
 
     <script>
-        // Chart instance
-        let dailyChart = null;
+        // Data antrian akan diambil dari backend
+        let queueData = [];
+
         let dropdownVisible = false;
         let notificationVisible = false;
 
         // Inisialisasi dashboard
         document.addEventListener('DOMContentLoaded', function() {
             // Inisialisasi data
-            updateDashboard();
+            updateStatistics();
 
             // Setup dropdown menu
             setupDropdowns();
-
-            // Setup chart
-            setupCharts();
 
             // Setup event listeners
             setupEventListeners();
@@ -395,68 +549,13 @@
             setupModals();
         });
 
-        // Update dashboard dengan data terbaru
-        function updateDashboard() {
-            // Update statistik harian
-            document.getElementById('totalQueueToday').textContent = Math.floor(Math.random() * 100);
-            document.getElementById('activeOfficers').textContent = Math.floor(Math.random() * 10);
-
-            // Update aktivitas terbaru
-            updateActivityLog();
-        }
-
-        // Update aktivitas terbaru
-        function updateActivityLog() {
-            const activityContainer = document.getElementById('activityLogContainer');
-            activityContainer.innerHTML = '';
-
-            // Contoh data aktivitas
-            const activities = [{
-                    icon: 'fa-user-plus',
-                    text: 'Petugas baru ditambahkan',
-                    time: '2 menit lalu',
-                    color: 'text-blue-400'
-                },
-                {
-                    icon: 'fa-list-ol',
-                    text: 'Antrian dipanggil',
-                    time: '5 menit lalu',
-                    color: 'text-green-400'
-                },
-                {
-                    icon: 'fa-user-clock',
-                    text: 'Petugas istirahat',
-                    time: '10 menit lalu',
-                    color: 'text-yellow-400'
-                },
-                {
-                    icon: 'fa-user-check',
-                    text: 'Petugas kembali bertugas',
-                    time: '15 menit lalu',
-                    color: 'text-green-400'
-                },
-                {
-                    icon: 'fa-exclamation-triangle',
-                    text: 'Antrian terlewat',
-                    time: '20 menit lalu',
-                    color: 'text-red-400'
-                }
-            ];
-
-            activities.forEach(activity => {
-                const activityElement = document.createElement('div');
-                activityElement.className = 'flex items-start p-3 bg-gray-800/50 rounded-lg';
-                activityElement.innerHTML = `
-                    <div class="mr-3 text-lg ${activity.color}">
-                        <i class="fas ${activity.icon}"></i>
-                    </div>
-                    <div class="flex-1">
-                        <p class="text-white">${activity.text}</p>
-                        <p class="text-gray-400 text-sm">${activity.time}</p>
-                    </div>
-                `;
-                activityContainer.appendChild(activityElement);
-            });
+        // Update statistik antrian
+        function updateStatistics() {
+            // Update jumlah antrian
+            document.getElementById('totalQueueToday').textContent = '42';
+            document.getElementById('servedToday').textContent = '28';
+            document.getElementById('waitingToday').textContent = '12';
+            document.getElementById('missedToday').textContent = '2';
         }
 
         // Setup dropdown menu
@@ -514,72 +613,6 @@
             });
         }
 
-        // Setup charts
-        function setupCharts() {
-            const ctx = document.getElementById('dailyChart').getContext('2d');
-
-            // Data grafik akan diambil dari backend
-            const days = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
-            const queueData = [65, 59, 80, 81, 56, 55, 40];
-            const servedData = [45, 39, 60, 61, 36, 35, 20];
-
-            dailyChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: days,
-                    datasets: [{
-                            label: 'Total Antrian',
-                            data: queueData,
-                            borderColor: 'rgb(59, 130, 246)',
-                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                            borderWidth: 2,
-                            tension: 0.4,
-                            fill: true
-                        },
-                        {
-                            label: 'Terlayani',
-                            data: servedData,
-                            borderColor: 'rgb(16, 185, 129)',
-                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                            borderWidth: 2,
-                            tension: 0.4,
-                            fill: true
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            labels: {
-                                color: '#9ca3af'
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                color: 'rgba(75, 85, 99, 0.3)'
-                            },
-                            ticks: {
-                                color: '#9ca3af'
-                            }
-                        },
-                        x: {
-                            grid: {
-                                color: 'rgba(75, 85, 99, 0.3)'
-                            },
-                            ticks: {
-                                color: '#9ca3af'
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
         // Setup event listeners
         function setupEventListeners() {
             // Tombol logout
@@ -587,18 +620,7 @@
                 showLogoutModal();
             });
 
-            // Navigation links
 
-
-            // Quick actions
-            document.querySelectorAll('.bg-blue-900\\/30, .bg-green-900\\/30, .bg-purple-900\\/30, .bg-red-900\\/30')
-                .forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const text = this.querySelector('span').textContent;
-                        // Fungsi untuk membuka aksi cepat akan diimplementasikan sesuai kebutuhan
-                        // showNotification(`Membuka ${text.toLowerCase()}...`, 'info');
-                    });
-                });
         }
 
         // Setup modals
@@ -661,26 +683,8 @@
                     alert(
                         'Logout berhasil!\n\nAnda telah keluar dari sistem admin.\n\nSekarang Anda akan diarahkan ke halaman login.'
                     );
-
-                    // Reset UI untuk demo
-                    resetAdminUI();
                 }, 2000);
             }, 1000);
-        }
-
-        // Reset UI untuk demo logout
-        function resetAdminUI() {
-            // Update nama user di header
-            const userName = document.querySelector('.text-left .font-medium');
-            if (userName) {
-                userName.textContent = '[Telah Logout]';
-            }
-
-            // Update notifikasi
-            const notificationBadge = document.querySelector('.notification-badge');
-            if (notificationBadge) {
-                notificationBadge.textContent = '0';
-            }
         }
 
         // Tampilkan notifikasi

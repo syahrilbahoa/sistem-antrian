@@ -7,7 +7,7 @@
          "dev": "vite",
          "serve": "php artisan serve",
          "reverb": "php artisan reverb:start",
-         "start": "concurrently -k -n \"SERVER,REVERB,VITE\" -c \"green,blue,yellow\" \"php artisan serve\" \"php artisan reverb:start\" \"npm run dev\""
+         "start": "concurrently -k -n \"SERVER,REVERB,VITE\" -c \"green,blue,yellow\" \"php artisan serve\" \"php artisan reverb:start\" \"php artisan queue:work\" \"npm run dev\""
 
     },
     "devDependencies": {
