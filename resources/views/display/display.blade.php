@@ -259,16 +259,6 @@
     </div>
 
     <script>
-        /* =====================================================
-                               DISPLAY ANTRIAN - FINAL CLEAN VERSION
-                               Anti Double Event
-                               Anti Tabrakan Suara
-                               Realtime Stable
-                            ===================================================== */
-
-        /* =====================
-           JAM & TANGGAL
-        ===================== */
         function updateDateTime() {
             const now = new Date();
 
@@ -284,9 +274,6 @@
                 now.toTimeString().slice(0, 8);
         }
 
-        /* =====================
-           AUDIO SYSTEM
-        ===================== */
         let suaraAktif = false;
         let audioContext = null;
 
@@ -316,10 +303,6 @@
 
             await play('/audio/bell.mp3');
             await play('/audio/nomor_antrian.mp3');
-
-            // ==============================
-            // AMBIL ANGKA SAJA
-            // ==============================
 
             const parts = nomor.split('-');
             let angka = parts[1] || '';
