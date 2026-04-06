@@ -61,7 +61,6 @@ class AdminController extends Controller
             'role' => $request->role,
         ];
 
-        // Jika password diisi, baru update
         if ($request->filled('password')) {
             $data['password'] = bcrypt($request->password);
         }

@@ -172,27 +172,7 @@
 
                     <div class="flex items-center space-x-4">
                         <!-- Notifikasi -->
-                        <div class="relative">
-                            <button id="notificationBtn" class="bg-gray-800 p-2 rounded-full hover:bg-gray-700">
-                                <i class="fas fa-bell text-yellow-400"></i>
-                                <span
-                                    class="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center notification-badge">3</span>
-                            </button>
-                            <!-- Dropdown Notifikasi -->
-                            <div id="notificationDropdown"
-                                class="absolute right-0 mt-2 w-80 bg-gray-800 rounded-lg shadow-xl z-50 hidden dropdown-enter">
-                                <div class="p-4 border-b border-gray-700">
-                                    <h3 class="font-bold">Notifikasi</h3>
-                                </div>
-                                <div class="max-h-64 overflow-y-auto" id="notificationsContainer">
-                                    <!-- Notifikasi akan diisi secara dinamis dari backend -->
-                                </div>
-                                <div class="p-3 border-t border-gray-700">
-                                    <a href="#" class="text-blue-400 text-sm hover:text-blue-300">Lihat semua
-                                        notifikasi</a>
-                                </div>
-                            </div>
-                        </div>
+
 
                         <!-- User Menu -->
                         <div class="relative">
@@ -500,7 +480,6 @@
         function setupDropdowns() {
             const userMenuBtn = document.getElementById('userMenuBtn');
             const userDropdown = document.getElementById('userDropdown');
-            const notificationBtn = document.getElementById('notificationBtn');
             const notificationDropdown = document.getElementById('notificationDropdown');
 
             // User dropdown
@@ -520,22 +499,7 @@
                 }
             });
 
-            // Notification dropdown
-            notificationBtn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                notificationVisible = !notificationVisible;
-                if (notificationVisible) {
-                    notificationDropdown.classList.remove('hidden');
-                } else {
-                    notificationDropdown.classList.add('hidden');
-                }
 
-                // Tutup user dropdown jika terbuka
-                if (dropdownVisible) {
-                    userDropdown.classList.add('hidden');
-                    dropdownVisible = false;
-                }
-            });
 
             // Tutup dropdown saat klik di luar
             document.addEventListener('click', function(e) {
@@ -544,10 +508,6 @@
                     dropdownVisible = false;
                 }
 
-                if (!notificationDropdown.contains(e.target) && !notificationBtn.contains(e.target)) {
-                    notificationDropdown.classList.add('hidden');
-                    notificationVisible = false;
-                }
             });
         }
 
