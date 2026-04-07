@@ -145,6 +145,24 @@
             opacity: 0.3;
             transition: 0s;
         }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
     </style>
 </head>
 
@@ -254,7 +272,8 @@
                 <div class="space-y-4 max-h-[320px] overflow-y-auto pr-2 custom-scrollbar">
                     <label
                         class="doctor-card block p-4 rounded-xl cursor-pointer transition-all duration-300 hover:shadow-md bg-gray-50">
-                        <input type="radio" name="dokter" value="Dr.Nelyan Mokoginta,Sp.PD" class="hidden doctor-radio">
+                        <input type="radio" name="dokter" value="Dr.Nelyan Mokoginta,Sp.PD"
+                            class="hidden doctor-radio">
                         <div class="flex items-center">
                             <div class="flex-shrink-0">
                                 <div
@@ -310,7 +329,8 @@
                 <!-- Informasi Tambahan -->
                 <div class="mt-6 p-4 bg-blue-50 rounded-xl flex items-start">
                     <i class="fas fa-info-circle text-blue-600 text-xl mt-1 mr-3"></i>
-                    <p class="text-sm text-gray-600">Pastikan Anda memilih dokter yang sesuai dengan keluhan Anda. Nomor
+                    <p class="text-sm text-gray-600">Pastikan Anda memilih dokter yang sesuai dengan keluhan Anda.
+                        Nomor
                         antrian akan tercetak setelah konfirmasi.</p>
                 </div>
             </div>
@@ -331,27 +351,9 @@
         </div>
     </div>
 
-    <!-- Custom Scrollbar Style -->
-    <style>
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-        }
 
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 10px;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
-    </style>
 </body>
+<script src="https://cdn.jsdelivr.net/npm/qz-tray/qz-tray.js"></script>
 
 <script>
     // =====================
@@ -603,94 +605,43 @@
     `;
     }
 
-    // =====================
-    // 5. CETAK KARCIS
-    // =====================
     function cetakKarcis(nomor, tanggal, waktu, nama_dokter) {
-        let win = window.open('', '', 'width=350,height=500');
 
-        win.document.write(`
-        <html>
-        <head>
-            <title>Karcis Antrian - Rumah Sakit</title>
-            <style>
-                body {
-                    font-family: 'Arial', sans-serif;
-                    text-align: center;
-                    padding: 30px 20px;
-                    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-                    margin: 0;
-                    min-height: 100vh;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                }
-                .ticket {
-                    background: white;
-                    border-radius: 16px;
-                    padding: 30px 20px;
-                    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-                    max-width: 300px;
-                    width: 100%;
-                }
-                .hospital-name {
-                    color: #1e3a8a;
-                    font-size: 14px;
-                    font-weight: bold;
-                    margin-bottom: 20px;
-                }
-                h1 {
-                    font-size: 56px;
-                    margin: 15px 0;
-                    color: #2563eb;
-                    font-weight: 900;
-                }
-                .doctor {
-                    font-size: 16px;
-                    font-weight: bold;
-                    color: #1e293b;
-                    margin: 10px 0;
-                }
-                .datetime {
-                    font-size: 14px;
-                    color: #64748b;
-                    margin: 5px 0;
-                }
-                .footer {
-                    margin-top: 25px;
-                    padding-top: 20px;
-                    border-top: 2px dashed #cbd5e1;
-                    font-size: 12px;
-                    color: #94a3b8;
-                }
-            </style>
-        </head>
-        <body>
-            <div class="ticket">
-                <div class="hospital-name">KLINIK ANUGRAH FARMA</div>
-                <div style="font-size: 12px; color: #475569;">NOMOR ANTRIAN</div>
-                <h1>${nomor}</h1>
-                <div class="doctor">${nama_dokter}</div>
-                <div class="datetime">${tanggal}</div>
-                <div class="datetime">${waktu}</div>
-                <div class="footer">
-                    Harap simpan karcis ini<br>
-                    untuk pemeriksaan
-                </div>
-            </div>
-        </body>
-        </html>
-    `);
+        qz.websocket.connect().then(() => {
+            return qz.printers.find(); // otomatis cari default printer
+        }).then(printer => {
 
-        win.document.close();
-        win.focus();
+            let config = qz.configs.create(printer);
 
-        // Small delay to ensure content is loaded
-        setTimeout(() => {
-            win.print();
-            win.close();
-        }, 250);
+            let data = [
+                '\x1B\x40',
+                '\x1B\x61\x01', // CENTER
+                'KLINIK ANUGRAH FARMA\n',
+                '--------------------------\n',
+                '\x1B\x61\x01',
+                'NOMOR ANTRIAN\n\n',
+                '\x1B\x21\x30', // DOUBLE SIZE
+                nomor + '\n',
+                '\x1B\x21\x00', // NORMAL
+                '--------------------------\n',
+                '\x1B\x61\x00', // LEFT
+                'Dokter : ' + nama_dokter + '\n',
+                'Tanggal : ' + tanggal + '\n',
+                'Waktu   : ' + waktu + '\n',
+                '--------------------------\n',
+                '\x1B\x61\x01',
+                'Terima Kasih\n\n\n',
+                '\x1D\x56\x41\x10' // CUT
+            ];
+
+            return qz.print(config, data);
+
+        }).catch(err => {
+            console.error(err);
+            alert("Printer tidak terhubung atau QZ Tray belum jalan!");
+        });
     }
+
 
     // =====================
     // NOTIFICATION SYSTEM
