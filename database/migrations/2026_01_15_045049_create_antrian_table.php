@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('nomor_antrian');
             $table->string('nama_dokter');
             $table->date('tanggal');
-            $table->enum('status', ['menunggu', 'dipanggil', 'selesai']);
+            $table->enum('status', ['menunggu', 'dipanggil', 'selesai', 'terlewat']);
             $table->timestamp('waktu_ambil')->nullable();
             $table->timestamp('waktu_panggil')->nullable();
 

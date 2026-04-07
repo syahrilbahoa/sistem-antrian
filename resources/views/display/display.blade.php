@@ -180,20 +180,14 @@
                         <div class="text-4xl font-bold text-white text-center py-3" id="loket1-number">--</div>
                     </div>
                 </div>
-
                 <!-- Loket 2 -->
                 <div
                     class="bg-gradient-to-br from-emerald-900 to-emerald-800 rounded-2xl shadow-xl p-5 border-l-8 border-emerald-500">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-2xl font-bold text-emerald-300">LOKET 2</h3>
-                        <span class="bg-emerald-500 text-white px-3 py-1 rounded-full text-sm font-bold">AKTIF</span>
+                        <span class="bg-emerald-500 text-white px-3 py-1 rounded-full text-sm font-bold">TIDAK
+                            AKTIF</span>
                     </div>
-
-                    <div class="mb-4">
-                        <div class="text-emerald-200 mb-1">Sedang Melayani</div>
-                        <div class="text-4xl font-bold text-white text-center py-3" id="loket2-number">--</div>
-                    </div>
-
                 </div>
 
                 <!-- Loket 3 -->

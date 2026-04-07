@@ -34,3 +34,9 @@ Route::post('/cetak-antrian', [AnjunganController::class, 'cetak'])->name('antri
 
 // Route untuk memanggil antrian berdasarkan nomor antrian (misalnya A-001)
 Route::post('/panggil/{nomor_antrian}', [PetugasController::class, 'panggil']);
+
+// Route untuk mendapatkan data antrian secara realtime
+Route::get('/api/antrian-data', [PetugasController::class, 'getData']);
+
+// Route untuk menandai antrian terlewat
+Route::post('/skip/{nomor_antrian}', [PetugasController::class, 'skip']);
