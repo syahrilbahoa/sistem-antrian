@@ -15,20 +15,57 @@ class AntrianController extends Controller
 
         try {
             $tanggal = now()->toDateString();
+            $jenis = $request->jenis;
+            $namaDokter = $request->nama_dokter;
 
-            $last = Antrian::where('tanggal', $tanggal)
-                ->orderBy('id_antrian', 'desc')
-                ->first();
+            // ================= VALIDASI =================
+            if (!$jenis) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Jenis antrian wajib diisi'
+                ], 400);
+            }
 
-            $nomor = $last
-                ? intval(substr($last->nomor_antrian, 2)) + 1
-                : 1;
+            if ($jenis == 'DOKTER' && !$namaDokter) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Nama dokter wajib diisi'
+                ], 400);
+            }
 
-            $nomorFormatted = 'A-' . str_pad($nomor, 3, '0', STR_PAD_LEFT);
+            // ================= PREFIX =================
+            if ($jenis == 'REGISTRASI') {
+                $prefix = 'R';
+            } else {
+                // Ambil huruf pertama nama dokter setelah "Dr. "
+                $prefix = strtoupper(substr($namaDokter, 3, 1));
+            }
 
+            // ================= QUERY =================
+            $query = Antrian::where('tanggal', $tanggal)
+                ->where('jenis', $jenis);
+
+            if ($jenis == 'DOKTER') {
+                $query->where('nama_dokter', $namaDokter);
+            }
+
+            $last = $query->orderBy('id_antrian', 'desc')->first();
+
+            // ================= NOMOR =================
+            if ($last) {
+                $lastNumber = intval(substr($last->nomor_antrian, 2));
+                $nomor = $lastNumber + 1;
+            } else {
+                $nomor = 1;
+            }
+
+            $nomorFormatted = $prefix . '-' . str_pad($nomor, 3, '0', STR_PAD_LEFT);
+
+            // ================= SIMPAN =================
             $antrian = Antrian::create([
                 'nomor_antrian' => $nomorFormatted,
-                'nama_dokter'   => $request->nama_dokter,
+                'jenis'         => $jenis,
+                'nama_dokter'   => $namaDokter,
                 'tanggal'       => $tanggal,
                 'status'        => 'menunggu',
                 'waktu_ambil'   => now(),
@@ -37,12 +74,14 @@ class AntrianController extends Controller
                 'id_user'       => null
             ]);
 
+            // ================= RESPONSE =================
             return response()->json([
                 'success' => true,
                 'data' => [
                     'nomor_antrian' => $antrian->nomor_antrian,
+                    'jenis' => $jenis,
+                    'nama_dokter' => $namaDokter,
                     'tanggal' => $tanggal,
-                    'nama_dokter' => $antrian->nama_dokter,
                     'waktu' => now()->format('H:i')
                 ]
             ]);
