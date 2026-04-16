@@ -14,6 +14,7 @@ class Antrian extends Model
       'nomor_antrian',
       'nama_dokter',
       'tanggal',
+      'jenis',
       'status',
       'waktu_ambil',
       'waktu_panggil',

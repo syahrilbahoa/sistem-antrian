@@ -36,9 +36,20 @@ class AntrianController extends Controller
             // ================= PREFIX =================
             if ($jenis == 'REGISTRASI') {
                 $prefix = 'R';
-            } else {
-                // Ambil huruf pertama nama dokter setelah "Dr. "
-                $prefix = strtoupper(substr($namaDokter, 3, 1));
+            } else if ($jenis == 'DOKTER') {
+
+                $mappingDokter = [
+                    'Dr. Nelyan Mokoginta' => 'N',
+                    'Dr. Akbar Patuti'     => 'A',
+                ];
+
+                if (isset($mappingDokter[$namaDokter])) {
+                    $prefix = $mappingDokter[$namaDokter];
+                } else {
+                    // fallback kalau dokter baru
+                    $nama = preg_replace('/^dr\.?\s*/i', '', $namaDokter);
+                    $prefix = strtoupper(substr($nama, 0, 1));
+                }
             }
 
             // ================= QUERY =================
@@ -53,7 +64,7 @@ class AntrianController extends Controller
 
             // ================= NOMOR =================
             if ($last) {
-                $lastNumber = intval(substr($last->nomor_antrian, 2));
+                $lastNumber = intval(explode('-', $last->nomor_antrian)[1]);
                 $nomor = $lastNumber + 1;
             } else {
                 $nomor = 1;
