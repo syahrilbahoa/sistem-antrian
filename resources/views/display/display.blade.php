@@ -177,7 +177,7 @@
                     </div>
                     <div class="mb-4">
                         <div class="text-blue-200 mb-1">Sedang Melayani</div>
-                        <div class="text-4xl font-bold text-white text-center py-3" id="loket1-number">--</div>
+                        <div class="text-5xl font-bold text-white text-center py-3" id="loket1-number">--</div>
                     </div>
                 </div>
                 <!-- Loket 2 -->
@@ -185,8 +185,11 @@
                     class="bg-gradient-to-br from-emerald-900 to-emerald-800 rounded-2xl shadow-xl p-5 border-l-8 border-emerald-500">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-2xl font-bold text-emerald-300">LOKET 2</h3>
-                        <span class="bg-emerald-500 text-white px-3 py-1 rounded-full text-sm font-bold">TIDAK
-                            AKTIF</span>
+                        <span class="bg-emerald-500 text-white px-3 py-1 rounded-full text-sm font-bold">AKTIF</span>
+                    </div>
+                    <div class="mb-4">
+                        <div class="text-emerald-200 mb-1">Sedang Melayani</div>
+                        <div class="text-5xl font-bold text-white text-center py-3" id="loket2-number">--</div>
                     </div>
                 </div>
 
@@ -195,12 +198,12 @@
                     class="bg-gradient-to-br from-amber-900 to-amber-800 rounded-2xl shadow-xl p-5 border-l-8 border-amber-500">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-2xl font-bold text-amber-300">LOKET 3</h3>
-                        <span class="bg-amber-500 text-white px-3 py-1 rounded-full text-sm font-bold">TIDAK
+                        <span class="bg-amber-500 text-white px-3 py-1 rounded-full text-sm font-bold">
                             AKTIF</span>
                     </div>
                     <div class="mb-4">
-                        <div class="text-amber-200 mb-1"></div>
-                        <div class="text-4xl font-bold text-white text-center py-3" id="loket3-number"></div>
+                        <div class="text-amber-200 mb-1">Sedang Melayani</div>
+                        <div class="text-5xl font-bold text-white text-center py-3" id="loket3-number"></div>
                     </div>
                 </div>
 
@@ -299,12 +302,21 @@
             await play('/audio/nomor_antrian.mp3');
 
             const parts = nomor.split('-');
+            let prefix = parts[0]; // R / N / A
             let angka = parts[1] || '';
 
-            // Hilangkan nol depan
             angka = parseInt(angka, 10).toString();
 
-            // Play angka per digit
+            // 🔊 PREFIX DULU
+            if (prefix === 'R') {
+                await play('/audio/r.mp3');
+            } else if (prefix === 'N') {
+                await play('/audio/n.mp3');
+            } else if (prefix === 'A') {
+                await play('/audio/a.mp3');
+            }
+
+            // 🔊 ANGKA
             for (let char of angka) {
                 await play(`/audio/nomor/${char}.mp3`);
             }

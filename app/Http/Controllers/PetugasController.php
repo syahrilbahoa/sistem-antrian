@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Events\PanggilAntrian;
-use App\Models\Antrian;
 use Illuminate\Http\Request;
+use App\Events\PanggilAntrian;
+use App\Models\{Antrian, Loket};
 use Carbon\Carbon;
+use Illuminate\Container\Attributes\Auth;
 
 class PetugasController extends Controller
 {
@@ -20,23 +21,47 @@ class PetugasController extends Controller
         return view('petugas.petugas', compact('antrian_hari_ini'));
     }
 
-    public function panggil($nomor_antrian)
+    public function panggil($nomor_antrian, Request $request)
     {
-        // Karena id_antrian adalah nomor antrian (misalnya A-001), bukan ID numerik
+        $loket_id = $request->input('loket_id');
+        $id_user = auth()->user()->id;
         $antrian = Antrian::where('nomor_antrian', $nomor_antrian)->firstOrFail();
 
-        // update database
+        // 🚨 VALIDASI LOKET
+        if ($loket_id == 1) {
+            // Loket pendaftaran hanya REGISTRASI
+            if ($antrian->jenis !== 'REGISTRASI') {
+                return response()->json([
+                    'message' => 'Loket ini hanya untuk registrasi!'
+                ], 403);
+            }
+        } elseif ($loket_id == 2) {
+            // Dokter Nelyan
+            if ($antrian->jenis !== 'DOKTER' || stripos($antrian->nama_dokter, 'Nelyan') === false) {
+                return response()->json([
+                    'message' => 'Ini bukan antrian Dokter Nelyan!'
+                ], 403);
+            }
+        } elseif ($loket_id == 3) {
+            // Dokter Akbar
+            if ($antrian->jenis !== 'DOKTER' || stripos($antrian->nama_dokter, 'Akbar') === false) {
+                return response()->json([
+                    'message' => 'Ini bukan antrian Dokter Akbar!'
+                ], 403);
+            }
+        }
+
+        // ✅ Update jika valid
         $antrian->update([
             'status' => 'dipanggil',
-            'waktu_panggil' => Carbon::now()
+            'waktu_panggil' => Carbon::now(),
+            'id_loket' => $loket_id,
+            'id_user' => $id_user
         ]);
-
-        // broadcast ke display - pastikan id_loket tidak NULL
-        $loket = $antrian->id_loket ?? 1; // Gunakan loket 1 sebagai default jika NULL
 
         broadcast(new PanggilAntrian(
             $antrian->nomor_antrian,
-            $loket
+            $loket_id
         ));
 
         return response()->json([
@@ -44,37 +69,47 @@ class PetugasController extends Controller
         ]);
     }
 
-    public function getData()
+    public function getData(Request $request)
     {
         $today = Carbon::today();
+        $loket_id = $request->input('loket_id');
 
-        // Antrian yang sedang dipanggil (status = 'dipanggil')
-        $currentCalled = Antrian::where('tanggal', $today)
+        // Base query
+        $query = Antrian::where('tanggal', $today);
+
+        // FILTER BERDASARKAN LOKET
+        if ($loket_id == 1) {
+            $query->where('jenis', 'REGISTRASI');
+        } elseif ($loket_id == 2) {
+            $query->where('jenis', 'DOKTER')
+                ->where('nama_dokter', 'LIKE', '%Nelyan%');
+        } elseif ($loket_id == 3) {
+            $query->where('jenis', 'DOKTER')
+                ->where('nama_dokter', 'LIKE', '%Akbar%');
+        }
+
+        // Clone query biar tidak bentrok
+        $waitingQueues = (clone $query)
+            ->where('status', 'menunggu')
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        $currentCalled = (clone $query)
             ->where('status', 'dipanggil')
             ->orderBy('waktu_panggil', 'desc')
             ->first();
 
-        // Antrian yang menunggu (status = 'menunggu')
-        $waitingQueues = Antrian::where('tanggal', $today)
-            ->where('status', 'menunggu')
-            ->orderBy('nomor_antrian', 'asc')
-            ->get();
-
-        // Antrian yang sudah terlayani (status = 'selesai')
-        $servedCount = Antrian::where('tanggal', $today)
+        $servedCount = (clone $query)
             ->where('status', 'selesai')
             ->count();
 
-        // Antrian yang terlewat (status = 'terlewat')
-        $skippedCount = Antrian::where('tanggal', $today)
+        $skippedCount = (clone $query)
             ->where('status', 'terlewat')
-            ->get();
+            ->count();
 
-        // Total antrian hari ini
-        $totalCount = Antrian::where('tanggal', $today)->count();
+        $totalCount = (clone $query)->count();
 
-        // Riwayat panggilan (dipanggil, selesai, terlewat)
-        $callHistory = Antrian::where('tanggal', $today)
+        $callHistory = (clone $query)
             ->whereIn('status', ['dipanggil', 'selesai', 'terlewat'])
             ->orderBy('waktu_panggil', 'desc')
             ->limit(10)
@@ -83,13 +118,18 @@ class PetugasController extends Controller
         return response()->json([
             'current' => $currentCalled ? [
                 'nomor_antrian' => $currentCalled->nomor_antrian,
-                'waktu_panggil' => $currentCalled->waktu_panggil ? Carbon::parse($currentCalled->waktu_panggil)->format('H:i') : null,
-                'loket' => $currentCalled->id_loket ?? 1
+                'waktu_panggil' => $currentCalled->waktu_panggil
+                    ? Carbon::parse($currentCalled->waktu_panggil)->format('H:i')
+                    : null,
+                'loket' => $currentCalled->id_loket ?? $loket_id
             ] : null,
-            'next' => $waitingQueues->count() > 0 ? $waitingQueues->first() : null,
+
+            'next' => $waitingQueues->first(),
+
             'totalToday' => $totalCount,
             'servedToday' => $servedCount,
-            'skippedToday' => $skippedCount->count(),
+            'skippedToday' => $skippedCount,
+
             'queueList' => $waitingQueues->map(function ($q) {
                 return [
                     'id' => $q->nomor_antrian,
@@ -98,19 +138,16 @@ class PetugasController extends Controller
                     'status' => $q->status
                 ];
             }),
+
             'callHistory' => $callHistory->map(function ($q) {
                 return [
                     'number' => $q->nomor_antrian,
-                    'time' => $q->waktu_panggil ? Carbon::parse($q->waktu_panggil)->format('H:i') : '--',
-                    'status' => $q->status === 'dipanggil' ? 'called' : ($q->status === 'selesai' ? 'served' : 'skipped')
-                ];
-            }),
-            'skippedList' => $skippedCount->map(function ($q) {
-                return [
-                    'number' => $q->nomor_antrian,
-                    'time' => $q->waktu_panggil ? Carbon::parse($q->waktu_panggil)->format('H:i') : '--',
-                    'officer' => 'Petugas',
-                    'note' => 'Tidak hadir setelah panggilan'
+                    'time' => $q->waktu_panggil
+                        ? Carbon::parse($q->waktu_panggil)->format('H:i')
+                        : '--',
+                    'status' => $q->status === 'dipanggil'
+                        ? 'called'
+                        : ($q->status === 'selesai' ? 'served' : 'skipped')
                 ];
             })
         ]);
@@ -127,6 +164,20 @@ class PetugasController extends Controller
 
         return response()->json([
             'message' => 'Antrian ditandai terlewat'
+        ]);
+    }
+
+    public function getLoketList()
+    {
+        $lokets = Loket::all();
+
+        return response()->json([
+            'loketList' => $lokets->map(function ($loket) {
+                return [
+                    'id_loket' => $loket->id_loket,
+                    'nama_loket' => $loket->nama_loket
+                ];
+            })
         ]);
     }
 }

@@ -166,9 +166,15 @@
 
             <div class="flex items-center space-x-4">
                 <div class="text-right">
-                    <p class="text-white font-semibold">Petugas: <span class="text-blue-200">Syahril Bahoa</span></p>
-                    <p class="text-blue-200 text-sm">Loket: <span class="font-bold">Pendaftaran 1</span></p>
+                    <p class="text-white font-semibold">Petugas: <span
+                            class="text-blue-200">{{ auth()->user()->name }}</span></p>
+                    <p class="text-blue-200 text-sm">Loket: <span class="font-bold"
+                            id="currentLoketName">Memuat...</span></p>
                 </div>
+                <button id="btnSwitchLoket"
+                    class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg flex items-center">
+                    <i class="fas fa-exchange-alt mr-2"></i> Ganti Loket
+                </button>
                 <div class="dropdown-container">
                     <button id="userMenuBtn"
                         class="bg-white/20 p-3 rounded-full cursor-pointer hover:bg-white/30 transition focus:outline-none">
@@ -178,8 +184,8 @@
                     <div id="userDropdown"
                         class="dropdown-menu mt-2 w-48 bg-white rounded-lg shadow-xl overflow-hidden z-50 dropdown-enter">
                         <div class="px-4 py-3 border-b">
-                            <p class="text-sm font-medium text-gray-900">Syahril Bahoa</p>
-                            <p class="text-xs text-gray-500">Petugas Pendaftaran</p>
+                            <p class="text-sm font-medium text-gray-900">{{ auth()->user()->name }}</p>
+                            <p class="text-xs text-gray-500">Petugas Loket </p>
                         </div>
                         <button id="btnLogout"
                             class="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 flex items-center focus:outline-none">
@@ -305,6 +311,38 @@
         </footer>
     </div>
 
+    <!-- Modal Pemilihan Loket -->
+    <div id="selectLoketModal" class="modal">
+        <div class="modal-content bg-white rounded-2xl w-11/12 md:w-1/2 p-8">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold text-gray-800">
+                    <i class="fas fa-door-open text-blue-600 mr-3"></i>Pilih Loket
+                </h3>
+                <button id="closeSelectLoketModal" class="text-gray-500 hover:text-gray-700 text-2xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="mb-6">
+                <p class="text-gray-600 mb-4">Silakan pilih loket yang akan Anda gunakan untuk melayani antrian:</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="loketList">
+                    <!-- Daftar loket akan dimuat di sini -->
+                </div>
+            </div>
+
+            <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                <div class="flex items-start">
+                    <i class="fas fa-info-circle text-blue-600 text-xl mr-3 mt-1"></i>
+                    <div>
+                        <p class="text-blue-800 font-semibold">Catatan:</p>
+                        <p class="text-blue-700 text-sm">Anda dapat mengganti loket kapan saja dengan menekan tombol
+                            "Ganti Loket" di bagian atas.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Konfirmasi Logout -->
     <div id="logoutModal" class="modal">
         <div class="modal-content bg-white rounded-2xl w-11/12 md:w-1/3 p-6">
@@ -365,6 +403,12 @@
             skippedList: []
         };
 
+        // Data loket
+        let loketData = {
+            selectedLoket: null,
+            loketList: []
+        };
+
         // Chart instance
         let monthlyChart = null;
         let dropdownVisible = false;
@@ -378,6 +422,9 @@
             // Update waktu
             updateDateTime();
             setInterval(updateDateTime, 1000);
+
+            // Load data loket
+            loadLoketData();
 
             // Load data dari server
             loadQueueData();
@@ -393,6 +440,9 @@
 
             // Setup modal
             setupModals();
+
+            // Setup loket modal
+            setupLoketModals();
         });
 
         // Fungsi untuk toggle dropdown user menu
@@ -400,7 +450,7 @@
         // Load data antrian dari server
         async function loadQueueData() {
             try {
-                const response = await fetch('/api/antrian-data');
+                const response = await fetch(`/api/antrian-data?loket_id=${loketData.selectedLoket}`);
                 if (response.ok) {
                     const data = await response.json();
 
@@ -419,6 +469,101 @@
             } catch (error) {
                 console.error('Error loading queue data:', error);
             }
+        }
+
+        // Load data loket dari server
+        function loadLoketData() {
+            // Hardcode loket
+            loketData.loketList = [{
+                    id_loket: 1,
+                    nama_loket: "Pendaftaran"
+                },
+                {
+                    id_loket: 2,
+                    nama_loket: "Dokter Nelyan"
+                },
+                {
+                    id_loket: 3,
+                    nama_loket: "Dokter Akbar"
+                }
+            ];
+
+            // Ambil dari session
+            const savedLoket = sessionStorage.getItem('selectedLoket');
+
+            if (savedLoket) {
+                loketData.selectedLoket = parseInt(savedLoket);
+                updateLoketDisplay();
+            } else {
+                showSelectLoketModal(); // wajib pilih
+            }
+
+            renderLoketList();
+        }
+
+        // Render daftar loket di modal
+        function renderLoketList() {
+            const loketListDiv = document.getElementById('loketList');
+            loketListDiv.innerHTML = '';
+
+            loketData.loketList.forEach(loket => {
+                const button = document.createElement('button');
+                button.className =
+                    `p-6 rounded-xl border-2 transition ${ loketData.selectedLoket === loket.id_loket ? 'border-blue-600 bg-blue-50' : 'border-gray-200 bg-white hover:border-blue-400'}`;
+                button.innerHTML = `
+    <div class="text-left">
+        <p class="text-lg font-bold text-gray-800">${loket.nama_loket}</p>
+        <p class="text-sm text-gray-500">
+            ${
+                loket.id_loket == 1 ? 'Loket Pendaftaran Pasien' :
+                loket.id_loket == 2 ? 'Poli Dokter Nelyan' :
+                'Poli Dokter Akbar'
+            }
+        </p>
+    </div>
+`;
+
+                button.addEventListener('click', () => {
+                    selectLoket(loket.id_loket, loket.nama_loket);
+                });
+
+                loketListDiv.appendChild(button);
+            });
+        }
+
+        // Select loket
+        function selectLoket(loketId, loketName) {
+            loketData.selectedLoket = loketId;
+            sessionStorage.setItem('selectedLoket', loketId);
+            updateLoketDisplay();
+            renderLoketList();
+
+            showNotification(`Loket berubah ke ${loketName}`, 'success');
+
+            // Jika modal masih terbuka dan ini adalah pemilihan awal, tutup
+            const modal = document.getElementById('selectLoketModal');
+            if (modal.style.display === 'flex') {
+                // Tunggu sebentar lalu tutup modal
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                }, 500);
+            }
+        }
+
+        // Update tampilan loket saat ini
+        function updateLoketDisplay() {
+            const loket = loketData.loketList.find(l => l.id_loket === loketData.selectedLoket);
+
+            if (loket) {
+                document.getElementById('currentLoketName').textContent =
+                    `Loket ${loket.id_loket} - ${loket.nama_loket}`;
+            }
+        }
+
+        // Tampilkan modal pemilihan loket
+        function showSelectLoketModal() {
+            const modal = document.getElementById('selectLoketModal');
+            modal.style.display = 'flex';
         }
 
         // Start realtime refresh dengan polling
@@ -596,6 +741,12 @@
 
         // Panggil antrian berikutnya
         async function callNext() {
+            // Cek apakah loket sudah dipilih
+            if (!loketData.selectedLoket) {
+                showNotification('Silakan pilih loket terlebih dahulu!', 'warning');
+                return;
+            }
+
             // Ambil nomor antrian pertama dari daftar antrian
             if (queueData.queueList.length > 0) {
                 const nextQueue = queueData.queueList[0]; // Ambil antrian pertama
@@ -607,7 +758,10 @@
                         headers: {
                             'Content-Type': 'application/json',
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                        }
+                        },
+                        body: JSON.stringify({
+                            loket_id: loketData.selectedLoket
+                        })
                     });
 
                     if (response.ok) {
@@ -615,7 +769,7 @@
                         await loadQueueData();
 
                         // Tampilkan notifikasi
-                        showNotification(`Antrian ${nextQueue.number} berhasil dipanggil!`, 'success');
+                        showNotification(`Antrian ${nextQueue.number} dipanggil di loket!`, 'success');
                     } else {
                         throw new Error('Gagal memanggil antrian');
                     }
@@ -630,6 +784,12 @@
 
         // Panggil antrian spesifik
         async function callSpecificNumber(number) {
+            // Cek apakah loket sudah dipilih
+            if (!loketData.selectedLoket) {
+                showNotification('Silakan pilih loket terlebih dahulu!', 'warning');
+                return;
+            }
+
             // Cari antrian dalam daftar
             const queueItem = queueData.queueList.find(item => item.number === number);
 
@@ -641,7 +801,10 @@
                         headers: {
                             'Content-Type': 'application/json',
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                        }
+                        },
+                        body: JSON.stringify({
+                            loket_id: loketData.selectedLoket
+                        })
                     });
 
                     if (response.ok) {
@@ -649,7 +812,7 @@
                         await loadQueueData();
 
                         // Tampilkan notifikasi
-                        showNotification(`Antrian ${number} berhasil dipanggil!`, 'success');
+                        showNotification(`Antrian ${number} dipanggil di loket!`, 'success');
                     } else {
                         throw new Error('Gagal memanggil antrian');
                     }
@@ -738,6 +901,33 @@
             window.addEventListener('click', function(event) {
                 if (event.target === logoutModal) {
                     logoutModal.style.display = 'none';
+                }
+            });
+        }
+
+        // Setup loket modal
+        function setupLoketModals() {
+            const selectLoketModal = document.getElementById('selectLoketModal');
+            const closeSelectLoketBtn = document.getElementById('closeSelectLoketModal');
+            const btnSwitchLoket = document.getElementById('btnSwitchLoket');
+
+            closeSelectLoketBtn.addEventListener('click', function() {
+                // Hanya tutup jika sudah ada loket yang dipilih
+                if (loketData.selectedLoket) {
+                    selectLoketModal.style.display = 'none';
+                } else {
+                    showNotification('Silakan pilih loket terlebih dahulu', 'warning');
+                }
+            });
+
+            btnSwitchLoket.addEventListener('click', function() {
+                showSelectLoketModal();
+            });
+
+            // Tutup modal saat klik di luar konten (hanya jika sudah ada loket yang dipilih)
+            window.addEventListener('click', function(event) {
+                if (event.target === selectLoketModal && loketData.selectedLoket) {
+                    selectLoketModal.style.display = 'none';
                 }
             });
         }

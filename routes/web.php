@@ -38,5 +38,8 @@ Route::post('/panggil/{nomor_antrian}', [PetugasController::class, 'panggil']);
 // Route untuk mendapatkan data antrian secara realtime
 Route::get('/api/antrian-data', [PetugasController::class, 'getData']);
 
+// Route untuk mendapatkan daftar loket
+Route::get('/api/loket-list', [PetugasController::class, 'getLoketList']);
+
 // Route untuk menandai antrian terlewat
 Route::post('/skip/{nomor_antrian}', [PetugasController::class, 'skip']);
